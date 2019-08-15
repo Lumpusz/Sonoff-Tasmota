@@ -118,6 +118,13 @@ void EpdInitDriver(void)
   }
 
   if (XDSP_05 == Settings.display_model) {
+    if (Settings.display_width != EPD_WIDTH) {
+      Settings.display_width = EPD_WIDTH;
+    }
+    if (Settings.display_height != EPD_HEIGHT) {
+      Settings.display_height = EPD_HEIGHT;
+    }
+
     if ((pin[GPIO_SPI_CS] < 99) && (pin[GPIO_SPI_CLK] < 99) && (pin[GPIO_SPI_MOSI] < 99)) {
       epd.cs_pin = pin[GPIO_SPI_CS];
       epd.sclk_pin = pin[GPIO_SPI_CLK];   // 14
@@ -209,7 +216,7 @@ void EpdPrintLog(void)
 
 //      epd_scroll = theight;  // Start below header
       epd_scroll = 0;  // Start at top with no header
-      for (uint8_t i = 0; i < last_row; i++) {
+      for (uint32_t i = 0; i < last_row; i++) {
         strlcpy(disp_screen_buffer[i], disp_screen_buffer[i +1], disp_screen_buffer_cols);
         EpdDrawStringAt(0, epd_scroll, disp_screen_buffer[i], COLORED, 0);
         epd_scroll += theight;

@@ -54,7 +54,7 @@ const char HASS_DISCOVER_LIGHT_DIMMER[] PROGMEM =
   ",\"bri_cmd_t\":\"%s\","                         // cmnd/led2/Dimmer
   "\"bri_stat_t\":\"%s\","                         // stat/led2/RESULT
   "\"bri_scl\":100,"                               // 100%
-  "\"on_cmd_type\":\"brightness\","                // power on (first), power on (last), no power on (brightness)
+  "\"on_cmd_type\":\"%s\","                        // power on (first), power on (last), no power on (brightness)
   "\"bri_val_tpl\":\"{{value_json." D_CMND_DIMMER "}}\"";
 
 const char HASS_DISCOVER_LIGHT_COLOR[] PROGMEM =
@@ -197,7 +197,7 @@ void HAssAnnounceRelayLight(void)
   bool is_light = false;
   bool is_topic_light = false;
 
-  for (int i = 1; i <= MAX_RELAYS; i++) {
+  for (uint32_t i = 1; i <= MAX_RELAYS; i++) {
     is_light = ((i == devices_present) && (light_type));
     is_topic_light = Settings.flag.hass_light || is_light;
 
@@ -245,7 +245,8 @@ void HAssAnnounceRelayLight(void)
 
         GetTopic_P(brightness_command_topic, CMND, mqtt_topic, D_CMND_DIMMER);
         Shorten(&brightness_command_topic, prefix);
-        TryResponseAppend_P(HASS_DISCOVER_LIGHT_DIMMER, brightness_command_topic, state_topic);
+        strncpy_P(stemp3, Settings.flag.not_power_linked?PSTR("last"):PSTR("brightness"), sizeof(stemp3));
+        TryResponseAppend_P(HASS_DISCOVER_LIGHT_DIMMER, brightness_command_topic, state_topic, stemp3);
 
         if (light_subtype >= LST_RGB) {
           char *rgb_command_topic = stemp1;
@@ -334,7 +335,7 @@ void HAssAnnounceSwitches(void)
   char *tmp = Settings.switch_topic;
   Format(sw_topic, tmp, sizeof(sw_topic));
   if ((strlen(sw_topic) != 0) && strcmp(sw_topic, "0")) {
-    for (uint8_t switch_index = 0; switch_index < MAX_SWITCHES; switch_index++) {
+    for (uint32_t switch_index = 0; switch_index < MAX_SWITCHES; switch_index++) {
       uint8_t switch_present = 0;
       uint8_t toggle = 1;
 
@@ -363,7 +364,7 @@ void HAssAnnounceButtons(void)
   char *tmp = Settings.button_topic;
   Format(key_topic, tmp, sizeof(key_topic));
   if ((strlen(key_topic) != 0) && strcmp(key_topic, "0")) {
-    for (uint8_t button_index = 0; button_index < MAX_KEYS; button_index++) {
+    for (uint32_t button_index = 0; button_index < MAX_KEYS; button_index++) {
       uint8_t button_present = 0;
       uint8_t toggle = 1;
 

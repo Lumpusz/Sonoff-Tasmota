@@ -225,7 +225,7 @@ bool XdrvCall(uint8_t Function)
 {
   bool result = false;
 
-  for (uint8_t x = 0; x < xdrv_present; x++) {
+  for (uint32_t x = 0; x < xdrv_present; x++) {
 //    WifiAddDelayWhenDisconnected();
     result = xdrv_func_ptr[x](Function);
 
@@ -237,6 +237,7 @@ bool XdrvCall(uint8_t Function)
                    (FUNC_SERIAL == Function) ||
                    (FUNC_MODULE_INIT == Function) ||
                    (FUNC_SET_CHANNELS == Function) ||
+                   (FUNC_PIN_STATE == Function) ||
                    (FUNC_SET_DEVICE_POWER == Function)
                   )) {
       break;

@@ -17,7 +17,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#ifdef USE_LIGHT
 /*********************************************************************************************\
  * Rotary support
 \*********************************************************************************************/
@@ -121,7 +121,7 @@ void RotaryHandler(void)
         if (t > 500) {
           t = 500;
         }
-        AddLog_P2(LOG_LEVEL_DEBUG, PSTR(D_LOG_APPLICATION D_CMND_COLORTEMPERATURE " %d"), rotary_position - rotary_last_position);
+        DEBUG_CORE_LOG(PSTR("ROT: " D_CMND_COLORTEMPERATURE " %d"), rotary_position - rotary_last_position);
         LightSetColorTemp((uint16_t)t);
       } else {
         int8_t d = Settings.light_dimmer;
@@ -132,7 +132,7 @@ void RotaryHandler(void)
         if (d > 100) {
           d = 100;
         }
-        AddLog_P2(LOG_LEVEL_DEBUG, PSTR(D_LOG_APPLICATION D_CMND_DIMMER " %d"), rotary_position - rotary_last_position);
+        DEBUG_CORE_LOG(PSTR("ROT: " D_CMND_DIMMER " %d"), rotary_position - rotary_last_position);
 
         LightSetDimmer((uint8_t)d);
         Settings.light_dimmer = d;
@@ -155,3 +155,4 @@ void RotaryLoop(void)
 }
 
 #endif  // ROTARY_V1
+#endif  // USE_LIGHT

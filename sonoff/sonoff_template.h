@@ -184,6 +184,13 @@ enum UserSelectablePins {
   GPIO_LEDLNK,         // Link led
   GPIO_LEDLNK_INV,     // Inverted link led
   GPIO_ARIRFSEL,       // Arilux RF Receive input selected
+  GPIO_BUZZER,         // Buzzer
+  GPIO_BUZZER_INV,     // Inverted buzzer
+  GPIO_OLED_RESET,     // OLED Display Reset
+  GPIO_SOLAXX1_TX,     // Solax Inverter tx pin
+  GPIO_SOLAXX1_RX,     // Solax Inverter rx pin
+  GPIO_ZIGBEE_TX,      // Zigbee Serial interface
+  GPIO_ZIGBEE_RX,      // Zigbee Serial interface
   GPIO_SENSOR_END };
 
 // Programmer selectable GPIO functionality
@@ -251,6 +258,10 @@ const char kSensorNames[] PROGMEM =
   D_SENSOR_ADE7953_IRQ "|"
   D_SENSOR_LED_LINK "|" D_SENSOR_LED_LINK "i|"
   D_SENSOR_ARIRFSEL "|"
+  D_SENSOR_BUZZER "|" D_SENSOR_BUZZER "i|"
+  D_SENSOR_OLED_RESET "|"
+  D_SENSOR_SOLAXX1_TX "|" D_SENSOR_SOLAXX1_RX "|"
+  D_SENSOR_ZIGBEE_TXD "|" D_SENSOR_ZIGBEE_RXD "|"
   ;
 
 // User selectable ADC0 functionality
@@ -352,7 +363,9 @@ enum SupportedModules {
   SP10,
   WAGA,
   SYF05,
-  MAXMODULE };
+  SONOFF_L1,
+  SONOFF_IFAN03,
+  MAXMODULE};
 
 #define USER_MODULE        255
 
@@ -465,6 +478,7 @@ const uint8_t kGpioNiceList[] PROGMEM = {
   GPIO_PWM4_INV,
   GPIO_PWM5,           // RGBCW Warm White
   GPIO_PWM5_INV,
+#ifdef USE_COUNTER
   GPIO_CNTR1,          // Counters
   GPIO_CNTR1_NP,
   GPIO_CNTR2,
@@ -473,6 +487,11 @@ const uint8_t kGpioNiceList[] PROGMEM = {
   GPIO_CNTR3_NP,
   GPIO_CNTR4,
   GPIO_CNTR4_NP,
+#endif
+#ifdef USE_BUZZER
+  GPIO_BUZZER,         // Buzzer
+  GPIO_BUZZER_INV,     // Inverted buzzer
+#endif
   GPIO_TXD,            // Serial interface
   GPIO_RXD,            // Serial interface
 #ifdef USE_I2C
@@ -490,14 +509,17 @@ const uint8_t kGpioNiceList[] PROGMEM = {
 #endif
 #ifdef USE_DISPLAY
   GPIO_BACKLIGHT,      // Display backlight control
+  GPIO_OLED_RESET,     // OLED Display Reset
 #endif
+#ifdef USE_DHT
   GPIO_DHT11,          // DHT11
   GPIO_DHT22,          // DHT21, DHT22, AM2301, AM2302, AM2321
   GPIO_SI7021,         // iTead SI7021
+#endif
 #if defined(USE_DS18B20) || defined(USE_DS18x20) || defined(USE_DS18x20_LEGACY)
   GPIO_DSB,            // Single wire DS18B20 or DS18S20
 #endif
-#ifdef USE_WS2812
+#if defined(USE_LIGHT) && defined(USE_WS2812)
   GPIO_WS2812,         // WS2812 Led string
 #endif
 #ifdef USE_IR_REMOTE
@@ -567,6 +589,10 @@ const uint8_t kGpioNiceList[] PROGMEM = {
   GPIO_SBR_TX,         // Serial Bridge Serial interface
   GPIO_SBR_RX,         // Serial Bridge Serial interface
 #endif
+#ifdef USE_ZIGBEE
+  GPIO_ZIGBEE_TX,      // Zigbee Serial interface
+  GPIO_ZIGBEE_RX,      // Zigbee Serial interface
+#endif
 #ifdef USE_MHZ19
   GPIO_MHZ_TXD,        // MH-Z19 Serial interface
   GPIO_MHZ_RXD,        // MH-Z19 Serial interface
@@ -588,7 +614,7 @@ const uint8_t kGpioNiceList[] PROGMEM = {
 #ifdef USE_MP3_PLAYER
   GPIO_MP3_DFR562,     // RB-DFR-562, DFPlayer Mini MP3 Player Serial interface
 #endif
-#ifdef USE_TUYA_DIMMER
+#if defined(USE_LIGHT) && defined(USE_TUYA_DIMMER)
   GPIO_TUYA_TX,        // Tuya Serial interface
   GPIO_TUYA_RX,        // Tuya Serial interface
 #endif
@@ -609,13 +635,15 @@ const uint8_t kGpioNiceList[] PROGMEM = {
   GPIO_MAX31855CLK,    // MAX31855 Serial interface
   GPIO_MAX31855DO,     // MAX31855 Serial interface
 #endif
+#ifdef USE_LIGHT
   GPIO_DI,             // my92x1 PWM input
   GPIO_DCKI,           // my92x1 CLK input
 #ifdef USE_SM16716
   GPIO_SM16716_CLK,    // SM16716 CLOCK
   GPIO_SM16716_DAT,    // SM16716 DATA
   GPIO_SM16716_SEL,    // SM16716 SELECT
-#endif // USE_SM16716
+#endif  // USE_SM16716
+#endif  // USE_LIGHT
 #ifdef ROTARY_V1
   GPIO_ROT1A,          // Rotary switch1 A Pin
   GPIO_ROT1B,          // Rotary switch1 B Pin
@@ -629,6 +657,10 @@ const uint8_t kGpioNiceList[] PROGMEM = {
 #ifdef USE_HRE
   GPIO_HRE_CLOCK,
   GPIO_HRE_DATA
+#endif
+#ifdef USE_SOLAX_X1
+  GPIO_SOLAXX1_TX,     // Solax Inverter tx pin
+  GPIO_SOLAXX1_RX,     // Solax Inverter rx pin
 #endif
 };
 
@@ -650,10 +682,16 @@ const uint8_t kModuleNiceList[] PROGMEM = {
   SONOFF_T13,
   SONOFF_LED,          // Sonoff Light Devices
   SONOFF_BN,
+#ifdef USE_PS_16_DZ
+  SONOFF_L1,
+#endif
   SONOFF_B1,           // Sonoff Light Bulbs
   SLAMPHER,
   SONOFF_SC,           // Sonoff Environmemtal Sensor
+#ifdef USE_SONOFF_IFAN
   SONOFF_IFAN02,       // Sonoff Fan
+  SONOFF_IFAN03,
+#endif
   SONOFF_BRIDGE,       // Sonoff Bridge
   SONOFF_SV,           // Sonoff Development Devices
   SONOFF_DEV,
@@ -1972,6 +2010,41 @@ const mytmplt kModules[MAXMODULE] PROGMEM = {
      0,                // GPIO15 wired to GND
      GPIO_USER,        // GPIO16 N.C.
      ADC0_USER         // ADC0 A0 Analog input
+  },
+  { "Sonoff L1",       // Sonoff L1 RGB LED controller (ESP8266 w/ separate Nuvoton MCU)
+     0,
+     GPIO_TXD,         // GPIO01 MCU serial control
+     0,
+     GPIO_RXD,         // GPIO03 MCU serial control
+     0, 0,
+                       // GPIO06 (SD_CLK   Flash)
+                       // GPIO07 (SD_DATA0 Flash QIO/DIO/DOUT)
+                       // GPIO08 (SD_DATA1 Flash QIO/DIO/DOUT)
+     0,                // GPIO09 (SD_DATA2 Flash QIO or ESP8285)
+     0,                // GPIO10 (SD_DATA3 Flash QIO or ESP8285)
+                       // GPIO11 (SD_CMD   Flash)
+     0,
+     GPIO_LED1_INV,    // GPIO13 WiFi Blue Led - Link and Power status
+     0, 0, 0, 0
+  },
+  { "Sonoff iFan03",   // Sonoff iFan03 (ESP8285)
+     GPIO_KEY1,        // GPIO00 WIFI_KEY0 Button 1
+     GPIO_TXD,         // GPIO01 ESP_TXD Serial RXD connection to P0.5 of RF microcontroller
+     0,                // GPIO02 ESP_LOG
+     GPIO_RXD,         // GPIO03 ESP_RXD Serial TXD connection to P0.4 of RF microcontroller
+     0,                // GPIO04 DEBUG_RX
+     0,                // GPIO05 DEBUG_TX
+                       // GPIO06 (SD_CLK   Flash)
+                       // GPIO07 (SD_DATA0 Flash QIO/DIO/DOUT)
+                       // GPIO08 (SD_DATA1 Flash QIO/DIO/DOUT)
+     GPIO_REL1_INV,    // GPIO09 WIFI_O0 Relay 1 (0 = Off, 1 = On) controlling the light
+     GPIO_BUZZER_INV,  // GPIO10 WIFI_O4 Buzzer (0 = Off, 1 = On)
+                       // GPIO11 (SD_CMD   Flash)
+     GPIO_REL3,        // GPIO12 WIFI_O2 Relay 3 (0 = Off, 1 = On) controlling the fan
+     GPIO_LED1_INV,    // GPIO13 WIFI_CHK Blue Led on PCA (0 = On, 1 = Off) - Link and Power status
+     GPIO_REL2,        // GPIO14 WIFI_O1 Relay 2 (0 = Off, 1 = On) controlling the fan
+     GPIO_REL4,        // GPIO15 WIFI_O3 Relay 4 (0 = Off, 1 = On) controlling the fan
+     0, 0
   }
 };
 

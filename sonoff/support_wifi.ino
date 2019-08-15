@@ -296,7 +296,7 @@ void WifiBeginAfterScan()
 
     if (wifi_scan_result > 0) {
       // Networks found
-      for (int8_t i = 0; i < wifi_scan_result; ++i) {
+      for (uint32_t i = 0; i < wifi_scan_result; ++i) {
 
         String ssid_scan;
         int32_t rssi_scan;
@@ -308,7 +308,7 @@ void WifiBeginAfterScan()
         WiFi.getNetworkInfo(i, ssid_scan, sec_scan, rssi_scan, bssid_scan, chan_scan, hidden_scan);
 
         bool known = false;
-        uint8_t j;
+        uint32_t j;
         for (j = 0; j < 2; j++) {
           if (ssid_scan == Settings.sta_ssid[j]) {  // SSID match
             known = true;
@@ -323,8 +323,15 @@ void WifiBeginAfterScan()
             break;
           }
         }
-        AddLog_P2(LOG_LEVEL_DEBUG, PSTR(D_LOG_WIFI "Network %d, AP%c, SSId %s, Channel %d, BSSId %02X:%02X:%02X:%02X:%02X:%02X, RSSI %d, Encryption %d"),
-          i, (known) ? (j) ? '2' : '1' : '-', ssid_scan.c_str(), chan_scan, bssid_scan[0], bssid_scan[1], bssid_scan[2], bssid_scan[3], bssid_scan[4], bssid_scan[5], rssi_scan, (sec_scan == ENC_TYPE_NONE) ? 0 : 1);
+        char hex_char[18];
+        AddLog_P2(LOG_LEVEL_DEBUG, PSTR(D_LOG_WIFI "Network %d, AP%c, SSId %s, Channel %d, BSSId %s, RSSI %d, Encryption %d"),
+          i,
+          (known) ? (j) ? '2' : '1' : '-',
+          ssid_scan.c_str(),
+          chan_scan,
+          ToHex_P((unsigned char*)bssid_scan, 6, hex_char, sizeof(hex_char), ':'),
+          rssi_scan,
+          (sec_scan == ENC_TYPE_NONE) ? 0 : 1);
         delay(0);
       }
       WiFi.scanDelete();                            // Clean up Ram
@@ -332,7 +339,7 @@ void WifiBeginAfterScan()
     }
     wifi_scan_state = 0;
     // If bssid changed then (re)connect wifi
-    for (uint8_t i = 0; i < sizeof(wifi_bssid); i++) {
+    for (uint32_t i = 0; i < sizeof(wifi_bssid); i++) {
       if (last_bssid[i] != wifi_bssid[i]) {
         WifiBegin(ap, channel);                     // 0 (AP1), 1 (AP2) or 3 (default AP)
         break;
